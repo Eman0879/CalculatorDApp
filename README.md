@@ -32,7 +32,3 @@ Ensure the following are installed on your system:
 
 ---
 
-### 2️⃣ Clone the Repository
-```bash
-git clone https://github.com/yourusername/calculator-dapp.git
-cd calculator-dapp
