@@ -1,0 +1,704 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator DApp</title>
+  <!-- Include Web3.js library 
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { padding: 10px; margin: 5px; font-size: 16px; }
+    #result { font-weight: bold; color: blue; }
+  </style>
+</head>
+<body>
+  <h1>Calculator DApp on Ethereum</h1>
+  <div>
+    <label for="num1">Number 1:</label>
+    <input type="number" id="num1" placeholder="Enter first number">
+  </div>
+  <div>
+    <label for="num2">Number 2:</label>
+    <input type="number" id="num2" placeholder="Enter second number">
+  </div>
+  <div>
+    <button onclick="calculate('add')">Add (+)</button>
+    <button onclick="calculate('subtract')">Subtract (-)</button>
+    <button onclick="calculate('multiply')">Multiply (*)</button>
+    <button onclick="calculate('divide')">Divide (/)</button>
+  </div>
+  <h2>Result: <span id="result">0</span></h2>
+  <p id="status"></p>
+
+  <script>
+    let web3;
+    let contract;
+    let accounts;
+
+    // Replace with actual contract address and ABI
+    const contractAddress = "0x044b1c83a0b6b27a3aa8cbb4639c603f9701f0ac";
+    const abi = [
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "a",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "b",
+				"type": "int256"
+			}
+		],
+		"name": "add",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "a",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "b",
+				"type": "int256"
+			}
+		],
+		"name": "divide",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "a",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "b",
+				"type": "int256"
+			}
+		],
+		"name": "multiply",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "a",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "b",
+				"type": "int256"
+			}
+		],
+		"name": "subtract",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "result",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+
+];
+
+    window.addEventListener('load', async () => {
+      const statusEl = document.getElementById("status");
+      statusEl.textContent = "Initializing...";
+
+      if (contractAddress === "" || abi.length === 0) {
+      alert("CRITICAL: Contract address or ABI is not set.");
+      statusEl.textContent = "Error: Contract details missing.";
+      return;
+      }
+
+      if (typeof window.ethereum !== 'undefined') {
+        web3 = new Web3(window.ethereum);
+        try {
+          statusEl.textContent = "Requesting MetaMask access...";
+          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          statusEl.textContent = "MetaMask connected: " + accounts[0].substring(0, 10) + "...";
+          contract = new web3.eth.Contract(abi, contractAddress);
+          displayCurrentResult();
+        } catch (error) {
+          console.error("MetaMask connection error", error);
+          statusEl.textContent = "MetaMask connection error.";
+          alert("Error: " + error.message);
+        }
+      } else {
+        statusEl.textContent = "Non-Ethereum browser detected. Please install MetaMask!";
+        alert("Please install MetaMask!");
+      }
+    });
+
+    async function displayCurrentResult() {
+      if (!contract) return;
+      const resultEl = document.getElementById("result");
+      try {
+        resultEl.textContent = "Fetching...";
+        const res = await contract.methods.result().call();
+        resultEl.textContent = res;
+      } catch (error) {
+        console.error("Error fetching result:", error);
+        resultEl.textContent = "Error";
+        document.getElementById("status").textContent = "Error fetching result: " + error.message;
+      }
+    }
+
+    async function calculate(operation) {
+      const statusEl = document.getElementById("status");
+
+      if (!contract || !accounts || accounts.length === 0) {
+        alert("DApp not ready. Ensure MetaMask is connected.");
+        statusEl.textContent = "Error: DApp not ready.";
+        return;
+      }
+
+      const num1Input = document.getElementById("num1").value;
+      const num2Input = document.getElementById("num2").value;
+
+      if (num1Input === "" || num2Input === "") {
+        alert("Please enter both numbers.");
+        statusEl.textContent = "Error: Missing input.";
+        return;
+      }
+
+      const a = parseInt(num1Input);
+      const b = parseInt(num2Input);
+
+      if (isNaN(a) || isNaN(b)) {
+        alert("Invalid number input.");
+        statusEl.textContent = "Error: Invalid number.";
+        return;
+      }
+
+      let transactionMethod;
+
+      if (operation === "add") transactionMethod = contract.methods.add(a, b);
+      else if (operation === "subtract") transactionMethod = contract.methods.subtract(a, b);
+      else if (operation === "multiply") transactionMethod = contract.methods.multiply(a, b);
+      else if (operation === "divide") {
+        if (b === 0) {
+          alert("Cannot divide by zero.");
+          document.getElementById("result").innerText = "Error: Division by zero";
+          statusEl.textContent = "Error: Division by zero.";
+          return;
+        }
+        transactionMethod = contract.methods.divide(a, b);
+      } else {
+        alert("Invalid operation.");
+        statusEl.textContent = "Error: Invalid operation.";
+        return;
+      }
+
+      document.getElementById("result").innerText = "Processing...";
+      statusEl.textContent = `Sending "${operation}" transaction...`;
+
+      try {
+        await transactionMethod.send({ from: accounts[0] });
+        statusEl.textContent = `Transaction successful for ${operation}.`;
+        displayCurrentResult();
+      } catch (error) {
+        console.error("Transaction failed", error);
+        statusEl.textContent = "Transaction failed: " + error.message;
+        document.getElementById("result").innerText = "Error";
+      }
+    }
+  </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator DApp</title>
+  <!-- Include Web3.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f4f8;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .container {
+      width: 90%;
+      max-width: 500px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      text-align: center;
+    }
+    
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 32px;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    label {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 18px;
+      color: #34495e;
+    }
+    
+    input {
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid #bdc3c7;
+      width: 70%;
+      font-size: 18px;
+      transition: border-color 0.3s;
+      text-align: center;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      min-width: 100px;
+    }
+    
+    button:active {
+      transform: scale(0.95);
+    }
+    
+    .add-btn {
+      background-color: #2ecc71;
+      color: white;
+    }
+    
+    .add-btn:hover {
+      background-color: #27ae60;
+    }
+    
+    .subtract-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .subtract-btn:hover {
+      background-color: #c0392b;
+    }
+    
+    .multiply-btn {
+      background-color: #f39c12;
+      color: white;
+    }
+    
+    .multiply-btn:hover {
+      background-color: #d35400;
+    }
+    
+    .divide-btn {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .divide-btn:hover {
+      background-color: #2980b9;
+    }
+    
+    .result-section {
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    .result-display {
+      font-size: 40px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #ecf0f1;
+      border-radius: 8px;
+      display: inline-block;
+      min-width: 150px;
+    }
+    
+    #status {
+      margin-top: 20px;
+      padding: 10px;
+      color: #7f8c8d;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+    
+    .success {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    
+    .error {
+      color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculator DApp on Ethereum</h1>
+    
+    <div class="input-group">
+      <label for="num1">Number 1:</label>
+      <input type="number" id="num1" placeholder="Enter first number">
+    </div>
+    
+    <div class="input-group">
+      <label for="num2">Number 2:</label>
+      <input type="number" id="num2" placeholder="Enter second number">
+    </div>
+    
+    <div class="button-group">
+      <button class="add-btn" onclick="calculate('add')">Add (+)</button>
+      <button class="subtract-btn" onclick="calculate('subtract')">Subtract (-)</button>
+      <button class="multiply-btn" onclick="calculate('multiply')">Multiply (×)</button>
+      <button class="divide-btn" onclick="calculate('divide')">Divide (÷)</button>
+    </div>
+    
+    <div class="result-section">
+      <h2>Result:</h2>
+      <div class="result-display" id="result">0</div>
+    </div>
+    
+    <p id="status"></p>
+  </div>
+
+  <script>
+    let web3;
+    let contract;
+    let accounts;
+
+    // Replace with actual contract address and ABI
+    const contractAddress = "0x044b1c83a0b6b27a3aa8cbb4639c603f9701f0ac";
+    const abi = [
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "a",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "b",
+				"type": "int256"
+			}
+		],
+		"name": "add",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "a",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "b",
+				"type": "int256"
+			}
+		],
+		"name": "divide",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "a",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "b",
+				"type": "int256"
+			}
+		],
+		"name": "multiply",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "a",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "b",
+				"type": "int256"
+			}
+		],
+		"name": "subtract",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "result",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+    window.addEventListener('load', async () => {
+      const statusEl = document.getElementById("status");
+      statusEl.textContent = "Initializing...";
+
+      if (contractAddress === "" || abi.length === 0) {
+        alert("CRITICAL: Contract address or ABI is not set.");
+        statusEl.textContent = "Error: Contract details missing.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      if (typeof window.ethereum !== 'undefined') {
+        web3 = new Web3(window.ethereum);
+        try {
+          statusEl.textContent = "Requesting MetaMask access...";
+          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          statusEl.textContent = "MetaMask connected: " + accounts[0].substring(0, 10) + "...";
+          statusEl.classList.add("success");
+          contract = new web3.eth.Contract(abi, contractAddress);
+          displayCurrentResult();
+        } catch (error) {
+          console.error("MetaMask connection error", error);
+          statusEl.textContent = "MetaMask connection error.";
+          statusEl.classList.add("error");
+          alert("Error: " + error.message);
+        }
+      } else {
+        statusEl.textContent = "Non-Ethereum browser detected. Please install MetaMask!";
+        statusEl.classList.add("error");
+        alert("Please install MetaMask!");
+      }
+    });
+
+    async function displayCurrentResult() {
+      if (!contract) return;
+      const resultEl = document.getElementById("result");
+      try {
+        resultEl.textContent = "Fetching...";
+        const res = await contract.methods.result().call();
+        resultEl.textContent = res;
+        
+        // Add some visual feedback for the new result
+        resultEl.style.transform = "scale(1.1)";
+        setTimeout(() => {
+          resultEl.style.transform = "scale(1)";
+        }, 300);
+      } catch (error) {
+        console.error("Error fetching result:", error);
+        resultEl.textContent = "Error";
+        document.getElementById("status").textContent = "Error fetching result: " + error.message;
+        document.getElementById("status").classList.add("error");
+      }
+    }
+
+    async function calculate(operation) {
+      const statusEl = document.getElementById("status");
+      statusEl.classList.remove("success", "error");
+
+      if (!contract || !accounts || accounts.length === 0) {
+        alert("DApp not ready. Ensure MetaMask is connected.");
+        statusEl.textContent = "Error: DApp not ready.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      const num1Input = document.getElementById("num1").value;
+      const num2Input = document.getElementById("num2").value;
+
+      if (num1Input === "" || num2Input === "") {
+        alert("Please enter both numbers.");
+        statusEl.textContent = "Error: Missing input.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      const a = parseInt(num1Input);
+      const b = parseInt(num2Input);
+
+      if (isNaN(a) || isNaN(b)) {
+        alert("Invalid number input.");
+        statusEl.textContent = "Error: Invalid number.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      let transactionMethod;
+      let operationName;
+
+      if (operation === "add") {
+        transactionMethod = contract.methods.add(a, b);
+        operationName = "add";
+      }
+      else if (operation === "subtract") {
+        transactionMethod = contract.methods.subtract(a, b);
+        operationName = "subtract";
+      }
+      else if (operation === "multiply") {
+        transactionMethod = contract.methods.multiply(a, b);
+        operationName = "multiply";
+      }
+      else if (operation === "divide") {
+        if (b === 0) {
+          alert("Cannot divide by zero.");
+          document.getElementById("result").innerText = "Error";
+          statusEl.textContent = "Error: Division by zero.";
+          statusEl.classList.add("error");
+          return;
+        }
+        transactionMethod = contract.methods.divide(a, b);
+        operationName = "divide";
+      } else {
+        alert("Invalid operation.");
+        statusEl.textContent = "Error: Invalid operation.";
+        statusEl.classList.add("error");
+        return;
+      }
+
+      document.getElementById("result").innerText = "Processing...";
+      statusEl.textContent = `Sending "${operationName}" transaction...`;
+
+      try {
+        await transactionMethod.send({ from: accounts[0] });
+        statusEl.textContent = `Transaction successful for ${operationName}.`;
+        statusEl.classList.add("success");
+        displayCurrentResult();
+      } catch (error) {
+        console.error("Transaction failed", error);
+        statusEl.textContent = "Transaction failed: " + error.message;
+        statusEl.classList.add("error");
+        document.getElementById("result").innerText = "Error";
+      }
+    }
+  </script>
+</body>
+</html>
