@@ -34,6 +34,7 @@ Ensure the following are installed on your system:
 ```bash
 git clone git@github.com:Eman0879/CalculatorDApp.git
 cd CalculatorDApp
+```
 
 ### 3️⃣ Initialize Node.js Project
 ```bash
@@ -58,15 +59,15 @@ Edit package.json and replace the scripts section with:
 - Open MetaMask.
 - Go to Networks → **Add Network** → **Add a network manually**.
 - Fill in:
-  Network Name: Ganache
-  RPC URL: Your Ganache RPC URL (e.g., http://127.0.0.1:7545)
-  Chain ID: 1337 (or Ganache’s displayed Chain ID)
-  Currency Symbol: ETH
-  Import one of the Ganache private keys into MetaMask.
+   - Network Name: Ganache
+   - RPC URL: Your Ganache RPC URL (e.g., http://127.0.0.1:7545)
+   - Chain ID: 1337 (or Ganache’s displayed Chain ID)
+   - Currency Symbol: ETH
+   - Import one of the Ganache private keys into MetaMask.
 
-### 7️⃣ Write the Smart Contract
+### 7️⃣ Copy the Smart Contract
 
-- Create a file Calculator.sol in a contracts folder and paste the Calculator.sol file.
+- Paste the Calculator.sol file.
 
 ### 8️⃣ Deploy the Smart Contract
 
@@ -75,23 +76,22 @@ Edit package.json and replace the scripts section with:
 - Compile using 0.8.x compiler version.
 - Go to Deploy & Run Transactions.
 - Select Injected Provider - MetaMask and connect to your Ganache account.
-  Deploy the contract.
-  Copy:
-  Deployed contract address
-  Contract ABI (from Remix after compilation)
+- Deploy the contract.
+- Copy:
+   - Deployed contract address
+   - Contract ABI (from Remix after compilation)
 
 ### 9️⃣ Configure the Frontend
 
 - Create index.html in your project folder and add your UI & JavaScript.
-  Replace:
-  const contractAddress = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
-  const abi = [ /* Paste full ABI from Remix */ ];
-  with your actual contract address and ABI.
+- Replace:
+  - const contractAddress = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
+  - const abi = [ /* Paste full ABI from Remix */ ]; with your actual contract address and ABI.
 
 ### 🔟 Run the DApp
 ```bash 
 npm start
 ```
--This will start a local server.
--Open the provided URL (e.g., http://localhost:3000) in your browser with MetaMask installed.
+- This will start a local server.
+- Open the provided URL (e.g., http://localhost:3000) in your browser with MetaMask installed.
 
